@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchlabels:
+      app: nginx
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate 
+    rollingUpdate:
+      maxUnavailale: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      initcontainers:
+      - name: wait-for-django
+        image: busybox
+        command: ['sh', '-c', 'until nc -z django-svc 5432; do sleep 1; done;']
+      containers:
+      - name: nginx
+        image: ghanatava/nginx
+        ports:
+          containerPort: 80
+        volumeMounts:
+        - name: static
+          mountPath: static
+        - name: frontend
+          mountPath: /app/build
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+
+        
+
+      

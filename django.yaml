@@ -32,6 +32,21 @@ spec:
                 name: confmap
           ports:
             - containerPort: 8000
+          volumeMounts:
+            - name: static
+              mountPath: static
+    volumeClaimTemplates:
+      - metadata:
+          name: static-pvc
+        spec:
+          accessModes: ["ReadWriteMany"]
+          storageClassName: "standard"
+          resource:
+            requests:
+              storage: 1Gi
+            limits:
+              storage: 2Gi
+          
 ---
 apiVersion: v1
 kind: Service
