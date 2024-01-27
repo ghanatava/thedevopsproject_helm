@@ -34,6 +34,28 @@ spec:
           mountPath: static
         - name: frontend
           mountPath: /app/build
+    volumeClaimTemplates:
+      - metadata:
+          name: frontend-pvc
+        spec:
+          accessModes: ["ReadOnlyMany"]
+          storageClassName: "standard"
+          resource: 
+            requests:
+              storage: 1Gi
+            limits:
+              storage: 2Gi
+
+      - metadata:
+          name: static-pvc
+        spec:
+          accessModes: ["ReadOnlyMany"]
+          storageClassName: "standard"
+          resource:
+            requests:
+              storage: 1Gi
+            limits:
+              storage: 2Gi
 ---
 apiVersion: v1
 kind: Service
@@ -46,6 +68,7 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+      
 
 
         
