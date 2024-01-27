@@ -51,7 +51,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: django-svc
+  name: backend
 spec:
   selector:
     app: django
