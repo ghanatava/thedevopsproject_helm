@@ -3,12 +3,11 @@ kind: StatefulSet
 metadata:
   name: postgres
 spec:
-  replicas: 2
+  replicas: 1
   serviceName: "postgres-svc"
   selector:
-    matchLabel:
-      labels:
-        app: postgres
+    matchLabels:
+      app: postgres
   template:
     metadata:
       labels:
@@ -16,44 +15,59 @@ spec:
     spec:
       containers:
       - name: postgres
-        image: postgres
+        image: postgres:latest
         envFrom:
           - configMapRef:
-            name: confmap
+              name: confmap
         ports:
-          - containerPort: 5432
+        - containerPort: 5432
         volumeMounts:
-          - name: postgres-storage
-            mountPath: /var/lib/postgresql/data
-    
-    volumeClaimTemplates:
-      - metadata: 
-          name: postgres-storage
-        spec:
-          accessModes: ["ReadWriteMany"]
-          storageClassName: "postgres-sc"
-          resource: 
-            requests: 
-              storage: 10Gi
-            limits:
-              storage: 12Gi
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-storage
+
 ---
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
+apiVersion: v1
+kind: PersistentVolume
 metadata:
-  name: postgres-sc
-provisioner: k8s.io/minikube-hostpath
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFristConsumer
+  name: postgres-storage
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: standard
+  hostPath:
+    path: /mnt/postgres
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres-svc
 spec:
-  ports:
-    - port: 80
-      name: postgres
   clusterIP: None
   selector:
     app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+
+
+                
+
+

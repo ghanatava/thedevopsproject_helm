@@ -5,57 +5,73 @@ metadata:
   labels:
     app: nginx
 spec:
-  replicas: 3
+  replicas: 2
   selector:
-    matchlabels:
+    matchLabels:
       app: nginx
   minReadySeconds: 10
   strategy:
     type: RollingUpdate 
     rollingUpdate:
-      maxUnavailale: 1
+      maxUnavailable: 1
       maxSurge: 1
   template:
     metadata:
       labels:
         app: nginx
     spec:
-      initcontainers:
-      - name: wait-for-django
-        image: busybox
-        command: ['sh', '-c', 'until nc -z django-svc 5432; do sleep 1; done;']
+      initContainers:
+      - name: frontend
+        image: ghanatava/auth-frontend
+        command: ["npm","run","build"]
+        volumeMounts:
+        - name: frontend
+          mountPath: /app/build
       containers:
       - name: nginx
-        image: ghanatava/nginx
+        image: ghanatava/auth-nginx
         ports:
-          containerPort: 80
+          - containerPort: 80
         volumeMounts:
         - name: static
           mountPath: static
         - name: frontend
           mountPath: /app/build
-    volumeClaimTemplates:
-      - metadata:
-          name: frontend-pvc
-        spec:
-          accessModes: ["ReadOnlyMany"]
-          storageClassName: "standard"
-          resource: 
-            requests:
-              storage: 1Gi
-            limits:
-              storage: 2Gi
+      volumes:
+        - name: static
+          persistentVolumeClaim:
+            claimName: static-pvc
 
-      - metadata:
-          name: static-pvc
-        spec:
-          accessModes: ["ReadOnlyMany"]
-          storageClassName: "standard"
-          resource:
-            requests:
-              storage: 1Gi
-            limits:
-              storage: 2Gi
+        - name: frontend
+          persistentVolumeClaim:
+            claimName: frontend-pvc
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: frontend
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes: 
+    - ReadWriteMany
+  storageClassName: standard
+  hostPath:
+    path: /mnt/frontend
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: frontend-pvc
+spec:
+  accessModes: 
+    - ReadWriteMany
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: Service

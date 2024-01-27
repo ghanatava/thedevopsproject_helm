@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
-metadata: 
+metadata:
   name: django
   labels:
     app: django
 spec:
   replicas: 3
   selector:
-    matchlabels:
+    matchLabels:
       app: backend
   minReadySeconds: 10
   strategy:
@@ -21,32 +21,52 @@ spec:
         app: backend
     spec:
       initContainers:
-      - name: wait for progress
+      - name: wait-for-progress
         image: busybox
-        command: ['sh','-c','until nc -z postgres-svc 5432;do sleep 1;done;']
+        command: ['sh','-c','until nc -z postgres-svc 5432; do sleep 1; done;']
       containers:
-        - name: django
-          image: ghanatava/django
-          envFrom: 
-            - configMapRef:
-                name: confmap
-          ports:
-            - containerPort: 8000
-          volumeMounts:
-            - name: static
-              mountPath: static
-    volumeClaimTemplates:
-      - metadata:
-          name: static-pvc
-        spec:
-          accessModes: ["ReadWriteMany"]
-          storageClassName: "standard"
-          resource:
-            requests:
-              storage: 1Gi
-            limits:
-              storage: 2Gi
-          
+      - name: django
+        image: ghanatava/auth-backend
+        envFrom: 
+          - configMapRef:
+              name: confmap
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: static
+          mountPath: /app/static
+      volumes:
+      - name: static
+        persistentVolumeClaim:
+          claimName: static-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: static
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes: 
+    - ReadWriteMany
+  storageClassName: standard
+  hostPath:
+    path: /mnt/data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: static-pvc
+spec:
+  accessModes: 
+    - ReadWriteMany
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 1Gi
+    limits:
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: Service
@@ -56,8 +76,6 @@ spec:
   selector:
     app: django
   ports:
-    - potocol: TCP
-      port: 80
-      targetPort: 8000
-  
-      
+  - protocol: TCP  # Corrected 'potocol' to 'protocol'
+    port: 80
+    targetPort: 8000

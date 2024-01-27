@@ -4,8 +4,7 @@ metadata:
   name: your-ingress
 spec:
   rules:
-  - host: my-domain.com  # Change this to your actual domain
-    http:
+  - http:
       paths:
       - path: /api/
         pathType: Prefix
