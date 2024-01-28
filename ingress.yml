@@ -1,10 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: your-ingress
+  name: auth-ingress
 spec:
   rules:
-  - http:
+  - host: ghanatava.com
+    http:
       paths:
       - path: /api/
         pathType: Prefix

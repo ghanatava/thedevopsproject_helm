@@ -74,8 +74,8 @@ metadata:
   name: backend
 spec:
   selector:
-    app: django
+    app: backend
   ports:
   - protocol: TCP  # Corrected 'potocol' to 'protocol'
-    port: 80
+    port: 8000
     targetPort: 8000

@@ -23,6 +23,9 @@ spec:
       initContainers:
       - name: frontend
         image: ghanatava/auth-frontend
+        envFrom:
+          - configMapRef:
+              name: confmap
         command: ["npm","run","build"]
         volumeMounts:
         - name: frontend

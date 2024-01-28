@@ -8,4 +8,5 @@ data:
   POSTGRES_PASSWORD: "mysecretpassword"
   SECRET_KEY: "1al9gc7xux@56sc7sbj_%vxl9uo&ij#0(n6n#4)5cvexooaky@"
   BACKEND_SERVICE_NAME: backend
+
   
